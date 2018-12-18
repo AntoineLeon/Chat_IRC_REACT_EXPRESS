@@ -27,24 +27,47 @@ class App extends Component {
   componentDidMount() {}
 
   MessageSet = e => {
-    this.setState({ message: this.state.username + "  :  " + e.target.value });
+    this.setState({ message: e.target.value });
   };
   SendMessage = e => {
     e.preventDefault();
-    this.socket.emit("new-message", this.state.message);
+    var tab = this.state.message.split(" ");
+    switch (tab[0]) {
+      case "/join":
+        this.socket.emit("join", tab[1]);
+        break;
+      case "/nick":
+        this.setState({ username: tab[1] });
+        break;
+      case "/create":
+        this.socket.emit("create", tab[1]);
+        break;
+      case "/where":
+        this.socket.emit("where", tab[1]);
+        break;
+
+      default:
+        this.socket.emit(
+          "new-message",
+          this.state.username + "  :  " + this.state.message
+        );
+        toast.info("Message send", {
+          position: "top-center",
+          autoClose: 500,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true
+        });
+        break;
+    }
     e.target.reset();
-    toast.info("Message send", {
-      position: "top-center",
-      autoClose: 1000,
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true
-    });
   };
   submit = e => {
     e.preventDefault();
+    if (this.state.username === "") this.setState({ username: "anon." });
     this.setState({ submitted: true });
+    this.socket.emit("user", this.state.username);
     toast("Welcome " + this.state.username + " !", {
       position: "top-center",
       autoClose: 2000,
@@ -59,10 +82,10 @@ class App extends Component {
   };
   render() {
     var self = this;
-    var i = 0;
+    var i = 1;
     var message = self.state.messages.map(function(msg) {
       return (
-        <div className="divmessage">
+        <div className="divmessage" key={i++}>
           <li className="textmessage" key={i++}>
             {msg}
           </li>
@@ -100,7 +123,7 @@ class App extends Component {
       return (
         <div>
           <h1>React Chat</h1>
-          <div>
+          <div className="center">
             <input
               type="text"
               onChange={e => {
@@ -109,8 +132,8 @@ class App extends Component {
               placeholder="Enter a username..."
               required
             />
+            <input type="submit" value="Submit" onClick={this.submit} />
           </div>
-          <input type="submit" value="Submit" onClick={this.submit} />
         </div>
       );
     }
