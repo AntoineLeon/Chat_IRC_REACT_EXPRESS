@@ -35,6 +35,7 @@ class App extends Component {
     switch (tab[0]) {
       case "/join":
         this.socket.emit("join", tab[1]);
+
         break;
       case "/nick":
         this.setState({ username: tab[1] });
@@ -45,7 +46,9 @@ class App extends Component {
       case "/where":
         this.socket.emit("where", tab[1]);
         break;
-
+      case "/list":
+        this.socket.emit("list");
+        break;
       default:
         this.socket.emit(
           "new-message",
@@ -71,7 +74,7 @@ class App extends Component {
     toast("Welcome " + this.state.username + " !", {
       position: "top-center",
       autoClose: 2000,
-      hideProgressBar: false,
+      hideProgressBar: true,
       closeOnClick: true,
       pauseOnHover: false,
       draggable: true

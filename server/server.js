@@ -7,14 +7,6 @@ var rooms = [
   {
     owner: "admin",
     name: "generale"
-  },
-  {
-    owner: "antoine",
-    name: "salut"
-  },
-  {
-    owner: "nom du mec",
-    name: "ok"
   }
 ];
 
@@ -24,6 +16,17 @@ function searchuser(user) {
   for (var i in users) {
     if (user == users[i].name) {
       return users[i];
+    }
+  }
+  return null;
+}
+
+function searchuserid(user) {
+  var nb = 0;
+  for (var i in users) {
+    nb++;
+    if (user == users[i].name) {
+      return nb;
     }
   }
   return null;
@@ -39,9 +42,12 @@ searchroom = room => {
 };
 
 io.on("connection", socket => {
+  console.log("New client connected");
+  var i = 1;
   socket.user = {
     name: "unknow",
-    room: rooms[0].name
+    room: rooms[0].name,
+    id: ""
   };
 
   socket.on("user", username => {
@@ -50,17 +56,17 @@ io.on("connection", socket => {
       name: username,
       room: rooms[0].name
     });
+    console.log(users);
   });
 
   socket.join(socket.user.room);
 
-  console.log("New client connected");
   socket.on("new-message", msg => {
     console.log(socket.user.room);
     io.to(socket.user.room).emit("receive-message", msg);
   });
 
-  socket.on("join", function(room) {
+  socket.on("join", room => {
     if (searchroom(room)) {
       socket.leave(socket.user.room);
       socket.join(room);
@@ -84,6 +90,22 @@ io.on("connection", socket => {
     var user = searchuser(username);
     if (user) {
       console.log(user);
+    }
+  });
+  socket.on("disconnect", () => {
+    console.log("user deconnected");
+    var suser = searchuser(socket.user.name);
+    if (suser) {
+      var nb = searchuserid(socket.user.name);
+      users.splice(0, nb);
+      console.log(users);
+    }
+  });
+
+  socket.on("list", () => {
+    console.log("List channel");
+    for (var i in rooms) {
+      console.log(rooms[i]);
     }
   });
 });
