@@ -35,19 +35,54 @@ class App extends Component {
     switch (tab[0]) {
       case "/join":
         this.socket.emit("join", tab[1]);
-
+        this.socket.emit(
+          "new-message",
+          "BOT :  " + this.state.username + " join  " + tab[1] + " room"
+        );
         break;
       case "/nick":
         this.setState({ username: tab[1] });
+        this.socket.emit(
+          "new-message",
+          "BOT-ALL" +
+            "  :  " +
+            this.state.username +
+            " change username to  " +
+            tab[1]
+        );
         break;
       case "/create":
         this.socket.emit("create", tab[1]);
+        this.socket.emit(
+          "new-message",
+          "BOT" +
+            "  :  " +
+            this.state.username +
+            " just create a new channel " +
+            tab[1]
+        );
         break;
       case "/where":
         this.socket.emit("where", tab[1]);
         break;
       case "/list":
         this.socket.emit("list");
+        break;
+      case "/users":
+        this.socket.emit("users");
+        break;
+      case "/part":
+        this.socket.emit("part", tab[1]);
+        this.socket.emit(
+          "new-message",
+          "BOT-PRIVATE" +
+            "  :  " +
+            " vous venez de quitter le channel : " +
+            tab[1]
+        );
+        break;
+      case "/delete":
+        this.socket.emit("delete", tab[1]);
         break;
       default:
         this.socket.emit(
@@ -86,7 +121,7 @@ class App extends Component {
   render() {
     var self = this;
     var i = 1;
-    var message = self.state.messages.map(function(msg) {
+    var message = self.state.messages.map(msg => {
       return (
         <div className="divmessage" key={i++}>
           <li className="textmessage" key={i++}>
@@ -98,7 +133,7 @@ class App extends Component {
     if (this.state.submitted) {
       return (
         <div>
-          <h1>React Chat</h1>
+          <h1 className="center titre">Online chat</h1>
           <ul>{message}</ul>
           <ToastContainer />
           <div>
@@ -124,18 +159,22 @@ class App extends Component {
       );
     } else {
       return (
-        <div>
-          <h1>React Chat</h1>
-          <div className="center">
-            <input
-              type="text"
-              onChange={e => {
-                this.setState({ username: e.target.value });
-              }}
-              placeholder="Enter a username..."
-              required
-            />
-            <input type="submit" value="Submit" onClick={this.submit} />
+        <div className="background">
+          <div className="base">
+            <div className="container">
+              <h1 className="titre pt-10">online chat</h1>
+              <div className="center">
+                <input
+                  type="text"
+                  onChange={e => {
+                    this.setState({ username: e.target.value });
+                  }}
+                  placeholder="Enter a username..."
+                  required
+                />
+                <input type="submit" value="Submit" onClick={this.submit} />
+              </div>
+            </div>
           </div>
         </div>
       );

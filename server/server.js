@@ -32,6 +32,17 @@ function searchuserid(user) {
   return null;
 }
 
+function searchroomid(room) {
+  var nb = 0;
+  for (var i in rooms) {
+    nb++;
+    if (room == rooms[i].name) {
+      return nb;
+    }
+  }
+  return null;
+}
+
 searchroom = room => {
   for (var i in rooms) {
     if (room == rooms[i].name) {
@@ -56,14 +67,19 @@ io.on("connection", socket => {
       name: username,
       room: rooms[0].name
     });
-    console.log(users);
   });
 
   socket.join(socket.user.room);
 
   socket.on("new-message", msg => {
-    console.log(socket.user.room);
-    io.to(socket.user.room).emit("receive-message", msg);
+    var test = msg.split(" ");
+    if (test[0] === "BOT-ALL") {
+      io.emit("receive-message", msg);
+    } else if (test[0] === "BOT-PRIVATE") {
+      io.to(socket.id).emit("receive-message", msg);
+    } else {
+      io.to(socket.user.room).emit("receive-message", msg);
+    }
   });
 
   socket.on("join", room => {
@@ -73,6 +89,16 @@ io.on("connection", socket => {
       var suser = searchuser(socket.user.name);
       suser.room = room;
       socket.user.room = room;
+    }
+  });
+
+  socket.on("part", room => {
+    if (searchroom(room)) {
+      socket.leave(socket.user.room);
+      socket.join("generale");
+      console.log(socket.user);
+      console.log(socket.user);
+      socket.user.room = "generale";
       console.log(room);
     }
   });
@@ -89,23 +115,41 @@ io.on("connection", socket => {
   socket.on("where", username => {
     var user = searchuser(username);
     if (user) {
-      console.log(user);
     }
   });
   socket.on("disconnect", () => {
-    console.log("user deconnected");
     var suser = searchuser(socket.user.name);
     if (suser) {
       var nb = searchuserid(socket.user.name);
       users.splice(0, nb);
-      console.log(users);
     }
   });
 
   socket.on("list", () => {
-    console.log("List channel");
+    var tab = [];
     for (var i in rooms) {
-      console.log(rooms[i]);
+      tab.push(rooms[i].name);
+    }
+    io.to(socket.id).emit("receive-message", "List of channel : " + tab + "\n");
+  });
+
+  socket.on("users", () => {
+    var tab = [];
+    for (var i in users) {
+      tab.push(users[i].name);
+    }
+    io.to(socket.id).emit("receive-message", "List of users : " + tab + "\n");
+  });
+
+  socket.on("delete", room => {
+    socket.leave(socket.user.room);
+    socket.join("generale");
+    socket.user.room = "generale";
+
+    var sroom = searchroom(room);
+    if (sroom) {
+      var nb = searchroomid(room);
+      rooms.splice(nb - 1, nb);
     }
   });
 });
