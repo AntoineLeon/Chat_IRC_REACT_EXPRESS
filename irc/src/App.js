@@ -16,7 +16,7 @@ class App extends Component {
       message: "",
       user: []
     };
-    this.socket = io("localhost:3000");
+    this.socket = io("localhost:1000");
     this.socket.on("receive-message", msg => {
       this.setState({ messages: [...this.state.messages, msg] });
     });
